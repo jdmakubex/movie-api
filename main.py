@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 #Importamos HTMLResponse para poder devolver HTML como respuesta
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
+from typing import Optional
 
 #Para el ejemplo del metodo POST, se agrega la libería Body, para pasar en el body los parametros
 from fastapi import Body
@@ -11,13 +13,22 @@ app.title = "Mi aplicación con FastApi"
 #Para cambiar la versión
 app.version = "0.0.1"
 
+class Movie(BaseModel):
+    id: Optional[int] = None
+    title: str
+    overview: str
+    year: int
+    rating: float
+    category:str
+
+
 #Creamos una variable llamada movies, tipo lista 
 #Ahora se aumenta un elemento a la colección para ejemplificar 
 movies = [
     {
         "id" : 1,
         "title" : "Avatar 1",
-        "overview" : "En un exuberante planeta llado Pandora viven los Na'vi, seres que ...",
+        "overview" : "En un exuberante planeta llamado Pandora viven los Na'vi, seres que ...",
         "year" : 2009,
         "rating" : 7.8,
         "category" : "Accion"
@@ -25,7 +36,7 @@ movies = [
     {
         "id" : 2,
         "title" : "Avatar 2",
-        "overview" : "En un exuberante planeta llado Pandora viven los Na'vi, seres que ...",
+        "overview" : "En un exuberante planeta llamado Pandora viven los Na'vi, seres que ...",
         "year" : 2009,
         "rating" : 7.8,
         "category" : "Accion"
@@ -61,6 +72,7 @@ def get_movies_by_category(category :str, year: int):
     return []
 
 #Ejemplo Parámetros Método POST
+'''
 @app.post('/movies/',tags=['movies'])
 def create_movie(id :int = Body() ,title : str = Body(), overview : str = Body(), year : int = Body(), rating : float = Body(), category : str = Body()):
     movies.append({
@@ -72,7 +84,14 @@ def create_movie(id :int = Body() ,title : str = Body(), overview : str = Body()
         "category":category
     })
     return title
+'''
+#Ejemplo Parámetros Método POST con esquemas
+@app.post('/movies/',tags=['movies'])
+def create_movie(movie: Movie):
+    movies.append(movie)
+    return movies
 
+'''
 #Ejemplo put
 @app.put('/movies/{id}', tags=['movies'])
 #Ojo el id, no se requiere como body
@@ -85,6 +104,21 @@ def update_movie(id: int, title: str = Body(), overview:str = Body(), year:int =
 			item['rating'] = rating,
 			item['category'] = category
 			return [item for item in movies]
+'''
+
+#Ejemplo put con esquemas
+@app.put('/movies/{id}', tags=['movies'])
+#Ojo el id, no se requiere como body
+def update_movie(id: int, movie: Movie):
+	for item in movies:
+		if item["id"] == id:
+			item['title'] = movie.title
+			item['overview'] = movie.overview
+			item['year'] = movie.year
+			item['rating'] = movie.rating
+			item['category'] = movie.category
+			return [item for item in movies]
+
 
 #Ejemplo delete
 @app.delete('/movies/{id}', tags=['movies'])
