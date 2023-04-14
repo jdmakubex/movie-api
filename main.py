@@ -26,16 +26,16 @@ class Movie(BaseModel):
     category:str = Field (min_length=5, max_length=15)
 
     class Config:
-         schema_extra = {
-              "example":{
+        schema_extra = {
+            "example":{
                     "id": 1,
                     "title": "Mi película",
                     "overview": "Descripción de la película",
                     "year": 2022,
                     "rating": 5,
                     "category": "Comedia"              
-              }
-         }
+            }
+        }
 
 
 #Creamos una variable llamada movies, tipo lista 
@@ -66,12 +66,12 @@ def read_root():
     return HTMLResponse('<h1>Hello World</h1>')
 
 #Creamos una nueva ruta que se llamará movies
-@app.get('/movies', tags=['movies'], response_model=list[Movie])
+@app.get('/movies', tags=['movies'], response_model=list[Movie],status_code=200)
 def get_movies() -> list[Movie]:
     #Aquí retornamos el listado contenido en la variable movies., respuesta tipo HTML
     #return [item for item in movies]
     #En ste ejemplo retornamos el listado como JSON
-    return JSONResponse(content=movies)
+    return JSONResponse(status_code=200, content=movies)
 
 #Con esta ruta se hace el ejemplo de parámetros con ruta
 @app.get('/movies/{id}', tags=['movies'], response_model=Movie)
@@ -81,8 +81,8 @@ def get_movie(id : int = Path(ge=1, le=2000))-> Movie:
             #return item, es para retornar respuesta como HMTL
             #return item
             #Este ejemplo es para retornar como JSON
-            return JSONResponse (content=item)
-    return JSONResponse (content= []) 
+            return JSONResponse (status_code=200, content=item)
+    return JSONResponse (status_code=404, content= []) 
 
 '''
 #Ejemplo Parámetros Query
@@ -94,7 +94,7 @@ def get_movies_by_category(category :str, year: int):
     return []
 '''
 
-#Ejemplo Parámetros Query
+#Ejemplo Parámetros Query  #Ejemplo de tipo de repuesta Lista
 @app.get('/movies/', tags=['movies'],  response_model=list[Movie])
 def get_movies_by_category(category :str =Query(min_length=5, max_length=15)) -> List[Movie]:
     for item in movies:
@@ -123,11 +123,11 @@ def create_movie(id :int = Body() ,title : str = Body(), overview : str = Body()
     return title
 '''
 #Ejemplo Parámetros Método POST con esquemas
-@app.post('/movies/',tags=['movies'], response_model=dict)
+@app.post('/movies/',tags=['movies'], response_model=dict, status_code=201)
 def create_movie(movie: Movie) -> dict:
     movies.append(movie)
     #return movies #Esto retornaba la respuesta como HTML
-    return JSONResponse (content={"message":"se ha registrado la película"})
+    return JSONResponse (status_code=201 ,content={"message":"se ha registrado la película"})
 
 '''
 #Ejemplo put
@@ -145,7 +145,7 @@ def update_movie(id: int, title: str = Body(), overview:str = Body(), year:int =
 '''
 
 #Ejemplo put con esquemas
-@app.put('/movies/{id}', tags=['movies'], response_model=dict)
+@app.put('/movies/{id}', tags=['movies'], response_model=dict, status_code=200)
 #Ojo el id, no se requiere como body
 def update_movie(id: int, movie: Movie) -> dict:
 	for item in movies:
@@ -158,11 +158,11 @@ def update_movie(id: int, movie: Movie) -> dict:
 			return JSONResponse (content={"message":"se ha modificado la película"})
 
 
-#Ejemplo delete
-@app.delete('/movies/{id}', tags=['movies'],  response_model=dict)
+#Ejemplo delete    #Ejemplo de tipo de respuesta diccionario
+@app.delete('/movies/{id}', tags=['movies'],  response_model=dict, status_code=200)
 def delete_movie(id: int) -> dict:
     for item in movies:
         if item["id"] == id:
             movies.remove(item)
             #return [item for item in movies]
-            return JSONResponse (content={"message":"se ha borrado la película"})
+            return JSONResponse (status_code=200, content={"message":"se ha borrado la película"})
