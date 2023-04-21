@@ -7,6 +7,12 @@ from typing import Optional
 from fastapi import Path
 from fastapi import Query
 from typing import List
+from jwt_manager import create_token
+
+class User(BaseModel):
+    email : str
+    password : str
+
 
 #Para el ejemplo del metodo POST, se agrega la libería Body, para pasar en el body los parametros
 from fastapi import Body
@@ -65,6 +71,11 @@ def read_root():
     #return {"Hello" : "World!"}
     return HTMLResponse('<h1>Hello World</h1>')
 
+#Ruta de login
+@app.post('/login', tags=['auth'])
+def login(user: User):
+    return user
+
 #Creamos una nueva ruta que se llamará movies
 @app.get('/movies', tags=['movies'], response_model=list[Movie],status_code=200)
 def get_movies() -> list[Movie]:
@@ -74,6 +85,7 @@ def get_movies() -> list[Movie]:
     return JSONResponse(status_code=200, content=movies)
 
 #Con esta ruta se hace el ejemplo de parámetros con ruta
+#En este ejemplo regresamos un estado 404 en caso de error
 @app.get('/movies/{id}', tags=['movies'], response_model=Movie)
 def get_movie(id : int = Path(ge=1, le=2000))-> Movie:
     for item in movies:
@@ -82,7 +94,7 @@ def get_movie(id : int = Path(ge=1, le=2000))-> Movie:
             #return item
             #Este ejemplo es para retornar como JSON
             return JSONResponse (status_code=200, content=item)
-    return JSONResponse (status_code=404, content= []) 
+    return JSONResponse (status_code=404, content= [])
 
 '''
 #Ejemplo Parámetros Query

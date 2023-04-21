@@ -3,3 +3,4 @@ starlette==0.26.1
 typing_extensions==4.5.0
 uvicorn==0.21.1
 wincertstore==0.2
+pyjwt==2.6.0
