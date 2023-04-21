@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 #Importamos HTMLResponse para poder devolver HTML como respuesta y JSONResponse para Json
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
@@ -7,7 +7,7 @@ from typing import Optional
 from fastapi import Path
 from fastapi import Query
 from typing import List
-from jwt_manager import create_token
+from jwt_manager import create_token, validate_token
 #Para el ejemplo de Middlewares de autenticación
 from fastapi.security import  HTTPBearer
 
@@ -26,12 +26,15 @@ app.title = "Mi aplicación con FastApi"
 #Para cambiar la versión
 app.version = "0.0.1"
 
-class JWTBrearer(HTTPBearer):
+class JWTBearer(HTTPBearer):
     #Por el tiempo que puede tarde el procedimiento se le pone async
     async  def __call__(self, request: Request):
-        #Se usa el super() para lamar a la clase superiory llamar al método __call__
+        #Se usa el super() para llamar a la clase superior y llamar al método __call__
         #Como carta un poco se le pone el await
-        return await super().__call__(request)
+        auth = await super().__call__(request)
+        data = validate_token(auth.credentials)
+        if data['email'] != "admin@gmail.com":
+            raise HTTPException (status_code=403, detail="Credenciales inválidas")
 
 class Movie(BaseModel):
     id: Optional[int] = None
@@ -89,7 +92,8 @@ def login(user: User):
         return JSONResponse(status_code=200, content=token)
 
 #Creamos una nueva ruta que se llamará movies
-@app.get('/movies', tags=['movies'], response_model=list[Movie],status_code=200)
+#Pasamos como parametro también las dependencias importando la clase Depends
+@app.get('/movies', tags=['movies'], response_model=list[Movie],status_code=200, dependencies=[Depends(JWTBearer())])
 def get_movies() -> list[Movie]:
     #Aquí retornamos el listado contenido en la variable movies., respuesta tipo HTML
     #return [item for item in movies]
