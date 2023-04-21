@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 #Importamos HTMLResponse para poder devolver HTML como respuesta y JSONResponse para Json
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
@@ -8,6 +8,9 @@ from fastapi import Path
 from fastapi import Query
 from typing import List
 from jwt_manager import create_token
+#Para el ejemplo de Middlewares de autenticación
+from fastapi.security import  HTTPBearer
+
 
 class User(BaseModel):
     email : str
@@ -22,6 +25,13 @@ app = FastAPI()
 app.title = "Mi aplicación con FastApi"
 #Para cambiar la versión
 app.version = "0.0.1"
+
+class JWTBrearer(HTTPBearer):
+    #Por el tiempo que puede tarde el procedimiento se le pone async
+    async  def __call__(self, request: Request):
+        #Se usa el super() para lamar a la clase superiory llamar al método __call__
+        #Como carta un poco se le pone el await
+        return await super().__call__(request)
 
 class Movie(BaseModel):
     id: Optional[int] = None
@@ -74,7 +84,9 @@ def read_root():
 #Ruta de login
 @app.post('/login', tags=['auth'])
 def login(user: User):
-    return user
+    if user.email == "admin@gmail.com" and user.password == "admin":
+        token: str = create_token(user.dict())
+        return JSONResponse(status_code=200, content=token)
 
 #Creamos una nueva ruta que se llamará movies
 @app.get('/movies', tags=['movies'], response_model=list[Movie],status_code=200)
